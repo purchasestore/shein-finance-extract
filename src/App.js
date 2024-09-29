@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { parse, parseISO, format, isValid, differenceInDays, addDays } from 'date-fns';
 import html2canvas from 'html2canvas';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
