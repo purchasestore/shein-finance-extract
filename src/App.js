@@ -16,7 +16,15 @@ function App() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragCounter, setDragCounter] = useState(0);
   const [sortConfig, setSortConfig] = useState({ key: 'Grouped Date', direction: 'desc' });
+  const [notification, setNotification] = useState(null);
   const tableRef = useRef(null);
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
+  };
 
   const handleFileUpload = async (file) => {
     if (!file) return;
@@ -63,9 +71,13 @@ function App() {
       }
 
       setRawData(jsonData);
+      
+      // Show success notification
+      const fileType = file.name.endsWith('.zip') ? 'ZIP' : 'Excel';
+      showNotification(`Arquivo ${fileType} carregado com sucesso! ${jsonData.length} registros encontrados.`);
     } catch (error) {
       console.error('Error processing file:', error);
-      alert('Erro ao processar o arquivo: ' + error.message);
+      showNotification(`Erro ao processar o arquivo: ${error.message}`, 'error');
     } finally {
       setIsLoading(false);
       setProgress(0);
@@ -112,14 +124,14 @@ function App() {
       if (file.name.endsWith('.xlsx') || file.name.endsWith('.zip')) {
         handleFileUpload(file);
       } else {
-        alert('Por favor, selecione apenas arquivos .xlsx ou .zip');
+        showNotification('Por favor, selecione apenas arquivos .xlsx ou .zip', 'error');
       }
     }
   };
 
   const handleLoadData = () => {
     if (!rawData) {
-      alert('Por favor, carregue um arquivo Excel ou ZIP primeiro.');
+      showNotification('Por favor, carregue um arquivo Excel ou ZIP primeiro.', 'error');
       return;
     }
     setIsLoading(true);
@@ -137,13 +149,13 @@ function App() {
           setIsLoading(false);
           setProgress(0);
         } else {
-          alert('Nenhum dado válido encontrado. Verifique se o arquivo contém as colunas necessárias:\n- Data de início da liquidação ou Data de solicitação de liquidação\n- Contas a receber ou Valor a receber');
+          showNotification('Nenhum dado válido encontrado. Verifique se o arquivo contém as colunas necessárias: Data de início da liquidação ou Data de solicitação de liquidação, Contas a receber ou Valor a receber', 'error');
           setIsLoading(false);
           setProgress(0);
         }
       } else if (type === 'error') {
         console.error('Error in worker:', data);
-        alert('Erro ao processar os dados. Verifique o console para mais detalhes.');
+        showNotification('Erro ao processar os dados. Verifique o console para mais detalhes.', 'error');
         setIsLoading(false);
         setProgress(0);
       }
@@ -259,6 +271,38 @@ function App() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notification */}
+        {notification && (
+          <div className={`mb-6 p-4 rounded-xl shadow-lg border-l-4 ${
+            notification.type === 'success' 
+              ? 'bg-green-50 border-green-400 text-green-800' 
+              : 'bg-red-50 border-red-400 text-red-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                {notification.type === 'success' ? (
+                  <svg className="w-5 h-5 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 mr-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <span className="font-medium">{notification.message}</span>
+              </div>
+              <button
+                onClick={() => setNotification(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* File Upload and Date Picker Section - Same Row */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
