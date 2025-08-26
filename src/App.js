@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import DatePicker from 'react-datepicker';
@@ -15,6 +15,7 @@ function App() {
   const [rawData, setRawData] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragCounter, setDragCounter] = useState(0);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const tableRef = useRef(null);
 
   const handleFileUpload = async (file) => {
@@ -172,6 +173,72 @@ function App() {
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(dataBlob, 'processed_data.xlsx');
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedData = useMemo(() => {
+    if (!data || !sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle numeric values (remove currency symbols and parse)
+      if (typeof aValue === 'string' && aValue.includes('R$')) {
+        aValue = parseFloat(aValue.replace(/[R$\s.]/g, '').replace(',', '.'));
+        bValue = parseFloat(bValue.replace(/[R$\s.]/g, '').replace(',', '.'));
+      } else if (typeof aValue === 'string' && aValue.includes('%')) {
+        aValue = parseFloat(aValue.replace('%', ''));
+        bValue = parseFloat(bValue.replace('%', ''));
+      }
+
+      // Handle date values
+      if (aValue && bValue && sortConfig.key === 'Grouped Date') {
+        const [dayA, monthA, yearA] = aValue.split('-');
+        const [dayB, monthB, yearB] = bValue.split('-');
+        aValue = new Date(yearA, monthA - 1, dayA);
+        bValue = new Date(yearB, monthB - 1, dayB);
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [data, sortConfig]);
+
+  const getSortIcon = (headerKey) => {
+    if (sortConfig.key !== headerKey) {
+      return (
+        <svg className="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      );
+    }
+    
+    if (sortConfig.direction === 'asc') {
+      return (
+        <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        </svg>
+      );
+    } else {
+      return (
+        <svg className="w-4 h-4 ml-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      );
+    }
   };
 
   return (
@@ -377,14 +444,21 @@ function App() {
                   <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                     <tr>
                       {Object.keys(data[0]).map((header) => (
-                        <th key={header} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          {translateHeader(header)}
+                        <th 
+                          key={header} 
+                          className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-150 select-none"
+                          onClick={() => handleSort(header)}
+                        >
+                          <div className="flex items-center">
+                            {translateHeader(header)}
+                            {getSortIcon(header)}
+                          </div>
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {data.map((row, idx) => (
+                    {sortedData.map((row, idx) => (
                       <tr key={idx} className={`${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-blue-50 transition-colors duration-150`}>
                         {Object.values(row).map((val, i) => (
                           <td key={i} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
