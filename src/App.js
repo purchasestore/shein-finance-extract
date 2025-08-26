@@ -15,7 +15,7 @@ function App() {
   const [rawData, setRawData] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragCounter, setDragCounter] = useState(0);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'Grouped Date', direction: 'desc' });
   const tableRef = useRef(null);
 
   const handleFileUpload = async (file) => {
