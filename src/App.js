@@ -192,94 +192,95 @@ function App() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* File Upload Section */}
+        {/* File Upload and Date Picker Section - Same Row */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-8">
-          <div className="text-center mb-6">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
-              <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Carregar Arquivo</h2>
-            <p className="text-gray-600">Selecione um arquivo Excel (.xlsx) ou ZIP contendo arquivos Excel</p>
-          </div>
-          
-          <div className="max-w-md mx-auto">
-            <label htmlFor="file-upload" className="block w-full">
-              <div 
-                className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer ${
-                  isDragOver 
-                    ? 'border-blue-400 bg-blue-50 shadow-lg scale-105' 
-                    : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
-                }`}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                <div className="space-y-1 text-center">
-                  {isDragOver ? (
-                    <svg className="mx-auto h-12 w-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  ) : (
-                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                  <div className="flex text-sm text-gray-600">
-                    <span className="relative bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                      Escolher arquivo
-                    </span>
-                    <p className="pl-1">ou arraste e solte</p>
-                  </div>
-                  <p className="text-xs text-gray-500">XLSX ou ZIP até 10MB</p>
-                  {isDragOver && (
-                    <div className="mt-2 text-sm text-blue-600 font-medium animate-pulse">
-                      Solte o arquivo aqui!
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* File Upload Section */}
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
+                <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Carregar Arquivo</h2>
+              <p className="text-gray-600 mb-4">Selecione um arquivo Excel (.xlsx) ou ZIP contendo arquivos Excel</p>
+              
+              <div className="max-w-md mx-auto">
+                <label htmlFor="file-upload" className="block w-full">
+                  <div 
+                    className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer ${
+                      isDragOver 
+                        ? 'border-blue-400 bg-blue-50 shadow-lg scale-105' 
+                        : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
+                    }`}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  >
+                    <div className="space-y-1 text-center">
+                      {isDragOver ? (
+                        <svg className="mx-auto h-12 w-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      ) : (
+                        <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                      <div className="flex text-sm text-gray-600">
+                        <span className="relative bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                          Escolher arquivo
+                        </span>
+                        <p className="pl-1">ou arraste e solte</p>
+                      </div>
+                      <p className="text-xs text-gray-500">XLSX ou ZIP até 10MB</p>
+                      {isDragOver && (
+                        <div className="mt-2 text-sm text-blue-600 font-medium animate-pulse">
+                          Solte o arquivo aqui!
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    onChange={handleFileInputChange}
+                    accept=".xlsx, .zip"
+                    className="sr-only"
+                  />
+                </label>
+              </div>
+              
+              <div className="mt-6">
+                <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  O arquivo deve conter as colunas: <strong>Data de início da liquidação</strong> e <strong>Contas a receber</strong>
                 </div>
               </div>
-              <input
-                id="file-upload"
-                type="file"
-                onChange={handleFileInputChange}
-                accept=".xlsx, .zip"
-                className="sr-only"
-              />
-            </label>
-          </div>
-          
-          <div className="mt-6 text-center">
-            <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-              O arquivo deve conter as colunas: <strong>Data de início da liquidação</strong> e <strong>Contas a receber</strong>
             </div>
-          </div>
-        </div>
 
-        {/* Date Picker Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-8">
-          <div className="max-w-md mx-auto text-center">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
-              <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+            {/* Date Picker Section */}
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
+                <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-2">Data de Início</h3>
+              <p className="text-gray-600 mb-4">Deixe em branco para processar todos os dados</p>
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                dateFormat="dd/MM/yyyy"
+                locale={ptBR}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-center text-lg font-medium"
+                placeholderText="Selecione uma data"
+                isClearable
+              />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Data de Início</h3>
-            <p className="text-gray-600 mb-4">Deixe em branco para processar todos os dados</p>
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              dateFormat="dd/MM/yyyy"
-              locale={ptBR}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-center text-lg font-medium"
-              placeholderText="Selecione uma data"
-              isClearable
-            />
           </div>
         </div>
 
