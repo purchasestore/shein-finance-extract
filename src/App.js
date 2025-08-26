@@ -13,10 +13,11 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [rawData, setRawData] = useState(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [dragCounter, setDragCounter] = useState(0);
   const tableRef = useRef(null);
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleFileUpload = async (file) => {
     if (!file) return;
 
     setIsLoading(true);
@@ -67,6 +68,51 @@ function App() {
     } finally {
       setIsLoading(false);
       setProgress(0);
+    }
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragCounter(prev => prev + 1);
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragCounter(prev => prev - 1);
+    if (dragCounter === 1) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    setDragCounter(0);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.zip')) {
+        handleFileUpload(file);
+      } else {
+        alert('Por favor, selecione apenas arquivos .xlsx ou .zip');
+      }
     }
   };
 
@@ -129,111 +175,230 @@ function App() {
   };
 
   return (
-    <div className="App bg-gray-100 min-h-screen p-8">
-      <h1 className="text-4xl font-bold text-center text-blue-600 mb-8">Processamento de Dados Excel</h1>
-      <div className="max-w-xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
-        <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
-          Carregar Arquivo Excel ou ZIP
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          onChange={handleFileUpload}
-          accept=".xlsx, .zip"
-          className="block w-full text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-full file:border-0
-            file:text-sm file:font-semibold
-            file:bg-blue-50 file:text-blue-700
-            hover:file:bg-blue-100
-          "
-        />
-        <p className="mt-2 text-xs text-gray-500">
-          O arquivo deve conter as colunas: <strong>Data de início da liquidação</strong> (ou <strong>Data de solicitação de liquidação</strong>) e <strong>Contas a receber</strong> (ou <strong>Valor a receber</strong>)
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Processamento de Dados Excel
+            </h1>
+            <p className="mt-2 text-lg text-gray-600">
+              Análise e processamento inteligente de dados financeiros
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="max-w-xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
-        <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-2">
-          Data de Início - Deixe em branco para todos os dados
-        </label>
-        <DatePicker
-          selected={startDate}
-          onChange={(date) => setStartDate(date)}
-          dateFormat="dd/MM/yyyy"
-          locale={ptBR}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          placeholderText="Selecione uma data"
-          isClearable
-        />
-      </div>
-      <div className="max-w-xl mx-auto mb-8">
-        <button
-          onClick={handleLoadData}
-          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Carregar Dados
-        </button>
-      </div>
-      {isLoading && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-            <div className="mb-4">Processando... {progress}%</div>
-            <div className="w-64 h-6 bg-gray-200 rounded-full">
-              <div
-                className="h-6 bg-blue-600 rounded-full"
-                style={{ width: `${progress}%` }}
-              ></div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* File Upload Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-8">
+          <div className="text-center mb-6">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
+              <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Carregar Arquivo</h2>
+            <p className="text-gray-600">Selecione um arquivo Excel (.xlsx) ou ZIP contendo arquivos Excel</p>
+          </div>
+          
+          <div className="max-w-md mx-auto">
+            <label htmlFor="file-upload" className="block w-full">
+              <div 
+                className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer ${
+                  isDragOver 
+                    ? 'border-blue-400 bg-blue-50 shadow-lg scale-105' 
+                    : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
+                }`}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              >
+                <div className="space-y-1 text-center">
+                  {isDragOver ? (
+                    <svg className="mx-auto h-12 w-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  ) : (
+                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                  <div className="flex text-sm text-gray-600">
+                    <span className="relative bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                      Escolher arquivo
+                    </span>
+                    <p className="pl-1">ou arraste e solte</p>
+                  </div>
+                  <p className="text-xs text-gray-500">XLSX ou ZIP até 10MB</p>
+                  {isDragOver && (
+                    <div className="mt-2 text-sm text-blue-600 font-medium animate-pulse">
+                      Solte o arquivo aqui!
+                    </div>
+                  )}
+                </div>
+              </div>
+              <input
+                id="file-upload"
+                type="file"
+                onChange={handleFileInputChange}
+                accept=".xlsx, .zip"
+                className="sr-only"
+              />
+            </label>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              O arquivo deve conter as colunas: <strong>Data de início da liquidação</strong> e <strong>Contas a receber</strong>
             </div>
           </div>
         </div>
-      )}
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center mt-8">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-          <p className="mt-4 text-lg text-gray-700">Processando dados...</p>
+
+        {/* Date Picker Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-8">
+          <div className="max-w-md mx-auto text-center">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
+              <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Data de Início</h3>
+            <p className="text-gray-600 mb-4">Deixe em branco para processar todos os dados</p>
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              dateFormat="dd/MM/yyyy"
+              locale={ptBR}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-center text-lg font-medium"
+              placeholderText="Selecione uma data"
+              isClearable
+            />
+          </div>
         </div>
-      ) : data && data.length > 0 ? (
-        <>
-          <div className="mb-4">
-            <button
-              onClick={handleExportExcel}
-              className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mr-2"
-            >
-              Exportar Excel
-            </button>
-            <button
-              onClick={handleExportImage}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Exportar como Imagem
-            </button>
+
+        {/* Process Button */}
+        <div className="text-center mb-8">
+          <button
+            onClick={handleLoadData}
+            disabled={!rawData || isLoading}
+            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold text-lg rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:transform-none disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processando...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Processar Dados
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md mx-4">
+              <div className="mb-6">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
+                  <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Processando dados...</h3>
+                <p className="text-gray-600 mb-4">Por favor, aguarde enquanto processamos seu arquivo</p>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+                <div
+                  className="h-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-500">{progress}% concluído</p>
+            </div>
           </div>
-          <div className="overflow-x-auto" ref={tableRef}>
-            <table className="min-w-full bg-white border border-gray-300 shadow-sm rounded-lg overflow-hidden">
-              <thead className="bg-gray-50">
-                <tr>
-                  {Object.keys(data[0]).map((header) => (
-                    <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {translateHeader(header)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {data.map((row, idx) => (
-                  <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                    {Object.values(row).map((val, i) => (
-                      <td key={i} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {val}
-                      </td>
+        )}
+
+        {/* Results Section */}
+        {data && data.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <div className="text-center mb-8">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Dados Processados com Sucesso!</h2>
+              <p className="text-gray-600">Total de {data.length} registros encontrados</p>
+            </div>
+
+            {/* Export Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <button
+                onClick={handleExportExcel}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Exportar Excel
+              </button>
+              <button
+                onClick={handleExportImage}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Exportar como Imagem
+              </button>
+            </div>
+
+            {/* Data Table */}
+            <div className="overflow-hidden rounded-xl border border-gray-200" ref={tableRef}>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      {Object.keys(data[0]).map((header) => (
+                        <th key={header} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          {translateHeader(header)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {data.map((row, idx) => (
+                      <tr key={idx} className={`${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-blue-50 transition-colors duration-150`}>
+                        {Object.values(row).map((val, i) => (
+                          <td key={i} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {val}
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </>
-      ) : null}
+        )}
+      </div>
     </div>
   );
 }
