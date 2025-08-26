@@ -12,6 +12,11 @@ self.onmessage = (event) => {
 };
 
 function processData(jsonData, startDate) {
+  // Log available columns for debugging
+  if (jsonData.length > 0) {
+    console.log('Available columns in data:', Object.keys(jsonData[0]));
+  }
+  
   const portugueseToEnglishMonths = {
     'janeiro': 'January',
     'fevereiro': 'February',
@@ -56,6 +61,22 @@ function processData(jsonData, startDate) {
     return isValid(fallbackDate) ? fallbackDate : null;
   };
 
+  // Helper function to get the correct column name for different Excel file formats
+  const getColumnName = (data, possibleNames) => {
+    for (const name of possibleNames) {
+      if (data.hasOwnProperty(name)) {
+        return name;
+      }
+    }
+    return null;
+  };
+
+  // Column mapping for different Excel file formats
+  const columnMappings = {
+    date: ['Data de início da liquidação', 'Data de solicitação de liquidação', 'Data de geração'],
+    contasReceber: ['Contas a receber', 'Valor a receber', 'Valor de liquidação']
+  };
+
   const formatReal = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -87,11 +108,27 @@ function processData(jsonData, startDate) {
         }
       });
 
-      newRow['Data de início da liquidação'] = convertDate(newRow['Data de início da liquidação']);
-
-      const contasReceberStr = newRow['Contas a receber'] ? newRow['Contas a receber'].toString().replace('BRL ', '') : '0';
-      const contasReceber = parseFloat(contasReceberStr.replace(/\./g, '').replace(',', '.')) || 0;
-      newRow['Contas a receber'] = contasReceber / 100;
+      // Get the correct column names for different Excel file formats
+      const dateColumn = getColumnName(newRow, columnMappings.date);
+      const contasReceberColumn = getColumnName(newRow, columnMappings.contasReceber);
+      
+      if (!dateColumn) {
+        console.warn('Missing date column. Available columns:', Object.keys(newRow));
+      }
+      
+      if (!contasReceberColumn) {
+        console.warn('Missing contas a receber column. Available columns:', Object.keys(newRow));
+      }
+      
+      if (dateColumn) {
+        newRow['Data de início da liquidação'] = convertDate(newRow[dateColumn]);
+      }
+      
+      if (contasReceberColumn) {
+        const contasReceberStr = newRow[contasReceberColumn] ? newRow[contasReceberColumn].toString().replace('BRL ', '') : '0';
+        const contasReceber = parseFloat(contasReceberStr.replace(/\./g, '').replace(',', '.')) || 0;
+        newRow['Contas a receber'] = contasReceber / 100;
+      }
 
       return newRow;
     } catch (error) {
@@ -99,7 +136,21 @@ function processData(jsonData, startDate) {
     }
   }).filter(row => row !== null);
 
-  const validData = cleanedData.filter((row) => row['Data de início da liquidação'] !== null);
+  const validData = cleanedData.filter((row) => {
+    const hasDate = row['Data de início da liquidação'] !== null;
+    const hasContas = row['Contas a receber'] !== undefined;
+    
+    if (!hasDate || !hasContas) {
+      console.warn('Row missing required data:', { 
+        hasDate, 
+        hasContas, 
+        dateValue: row['Data de início da liquidação'],
+        contasValue: row['Contas a receber']
+      });
+    }
+    
+    return hasDate && hasContas;
+  });
 
   validData.sort((a, b) => {
     const dateA = a['Data de início da liquidação'];
@@ -201,5 +252,7 @@ function processData(jsonData, startDate) {
     return orderedItem;
   });
 
+  console.log(`Processing complete. Input rows: ${jsonData.length}, Valid rows: ${validData.length}, Output rows: ${finalData.length}`);
+  
   return finalData;
 }

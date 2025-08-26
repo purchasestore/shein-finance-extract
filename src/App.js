@@ -54,6 +54,12 @@ function App() {
         throw new Error('Formato de arquivo não suportado');
       }
 
+      // Log detected columns for debugging
+      if (jsonData.length > 0) {
+        console.log('Detected columns:', Object.keys(jsonData[0]));
+        console.log('Total rows:', jsonData.length);
+      }
+
       setRawData(jsonData);
     } catch (error) {
       console.error('Error processing file:', error);
@@ -79,12 +85,18 @@ function App() {
       if (type === 'progress') {
         setProgress(progress);
       } else if (type === 'result') {
-        setData(data);
-        setIsLoading(false);
-        setProgress(0);
+        if (data && data.length > 0) {
+          setData(data);
+          setIsLoading(false);
+          setProgress(0);
+        } else {
+          alert('Nenhum dado válido encontrado. Verifique se o arquivo contém as colunas necessárias:\n- Data de início da liquidação ou Data de solicitação de liquidação\n- Contas a receber ou Valor a receber');
+          setIsLoading(false);
+          setProgress(0);
+        }
       } else if (type === 'error') {
         console.error('Error in worker:', data);
-        alert('Erro ao processar os dados. Por favor, tente novamente.');
+        alert('Erro ao processar os dados. Verifique o console para mais detalhes.');
         setIsLoading(false);
         setProgress(0);
       }
@@ -136,6 +148,9 @@ function App() {
             hover:file:bg-blue-100
           "
         />
+        <p className="mt-2 text-xs text-gray-500">
+          O arquivo deve conter as colunas: <strong>Data de início da liquidação</strong> (ou <strong>Data de solicitação de liquidação</strong>) e <strong>Contas a receber</strong> (ou <strong>Valor a receber</strong>)
+        </p>
       </div>
       <div className="max-w-xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
         <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-2">
